@@ -23,6 +23,9 @@ namespace Assets.Scripts
         [SerializeField, Range(0, 10)]
         private int bounces;
 
+        [SerializeField]
+        private bool castShadows = true;
+
         private new Camera camera;
         private RenderTexture renderTexture;
 
@@ -71,6 +74,7 @@ namespace Assets.Scripts
         {
             antialiasingSample = 0;
             rayTracer.SetInt("Bounces", bounces);
+            rayTracer.SetBool("CastShadows", castShadows);
         }
 
         private void OnImageRendered(RenderTexture destination)
