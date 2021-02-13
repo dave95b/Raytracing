@@ -24,7 +24,7 @@ struct Sphere
     float3 specular;
 };
 
-struct DirectionalLight2
+struct DirectionalLight
 {
     float3 direction;
     float4 color;
@@ -52,7 +52,7 @@ uint Bounces;
 Texture2D<float4> Skybox;
 SamplerState samplerSkybox;
 
-float4 DirectionalLight;
+RWStructuredBuffer<DirectionalLight> Light;
 bool CastShadows;
 
 Ray CreateRay(float3 origin, float3 direction)
@@ -149,7 +149,7 @@ bool TestShadow(RayHit hit)
     if (!CastShadows)
         return false;
 
-    Ray shadowRay = CreateRay(hit.position + hit.normal * 0.001f, -1.0f * DirectionalLight.xyz);
+    Ray shadowRay = CreateRay(hit.position + hit.normal * 0.001f, -1.0f * Light[0].direction);
     RayHit shadowHit = Trace(shadowRay);
 
     return shadowHit.distance != infinity;
@@ -166,7 +166,7 @@ float3 Shade(inout Ray ray, RayHit hit)
         if (TestShadow(hit))
             return float3Zero;
 
-        return saturate(dot(hit.normal, DirectionalLight.xyz) * -1) * DirectionalLight.w * hit.albedo;
+        return saturate(dot(hit.normal, Light[0].direction) * -1) * Light[0].intensity * hit.albedo * Light[0].color;
     }
     else
         return SampleSkybox(ray);

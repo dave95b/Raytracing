@@ -63,6 +63,9 @@ namespace Assets.Scripts
             onRenderImageDispatcher.OnImageRendered += OnImageRendered;
 
             antialiasingMaterial = new Material(antialiasingShader);
+
+            lightBuffer = new ComputeBuffer(1, Marshal.SizeOf<DirectionalLight>());
+            rayTracer.SetBuffer(0, "Light", lightBuffer);
         }
 
         private void OnDestroy()
@@ -81,9 +84,13 @@ namespace Assets.Scripts
             if (directionalLight.transform.hasChanged)
             {
                 antialiasingSample = 0;
-                Vector3 l = directionalLight.transform.forward;
-                rayTracer.SetVector("DirectionalLight", new Vector4(l.x, l.y, l.z, directionalLight.intensity));
                 directionalLight.transform.hasChanged = false;
+
+                Vector3 direction = directionalLight.transform.forward;
+                Vector4 color = directionalLight.color;
+
+                var arr = new[] { new DirectionalLight(direction, color, directionalLight.intensity) };
+                lightBuffer.SetData(arr);
             }
         }
 
@@ -142,7 +149,7 @@ namespace Assets.Scripts
                 position.z = position.y;
                 position.y = radius;
 
-                Color color = Random.ColorHSV();
+                Color color = Random.ColorHSV(0, 1, 0.5f, 1, 0.5f, 1.0f);
                 
                 bool metal = Random.value < 0.5f;
                 Vector3 fromColor = new Vector3(color.r, color.g, color.b);

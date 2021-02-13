@@ -293,13 +293,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 963194225}
-  m_LocalRotation: {x: 0.2588191, y: 0, z: 0, w: 0.9659258}
-  m_LocalPosition: {x: 0, y: 38.66, z: -51.66}
+  m_LocalRotation: {x: 0.35755306, y: 0, z: 0, w: 0.93389285}
+  m_LocalPosition: {x: 0, y: 41.68, z: -51.66}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 30, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 41.9, y: 0, z: 0}
 --- !u!114 &963194229
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -346,7 +346,7 @@ MonoBehaviour:
   skybox: {fileID: 2800000, guid: 8a87fe162847f6f408c8bbd12d0c150d, type: 3}
   antialiasingShader: {fileID: 4800000, guid: c48c1eeb55a4b3a4b86f3ea7a47ccd00, type: 3}
   directionalLight: {fileID: 705507994}
-  bounces: 5
+  bounces: 10
   castShadows: 1
   minRadius: 1.236
   maxRadius: 3.95
