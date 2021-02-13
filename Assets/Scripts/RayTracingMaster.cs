@@ -1,8 +1,5 @@
 ﻿using Assets.Scripts.Utils;
-using System.Collections;
 using UnityEngine;
-using UnityEngine.Serialization;
-using UnityEngine.UI;
 
 namespace Assets.Scripts
 {
@@ -19,6 +16,12 @@ namespace Assets.Scripts
 
         [SerializeField]
         private Shader antialiasingShader;
+
+        [SerializeField]
+        private Light directionalLight;
+
+        [SerializeField, Range(0, 10)]
+        private int bounces;
 
         private new Camera camera;
         private RenderTexture renderTexture;
@@ -54,6 +57,20 @@ namespace Assets.Scripts
                 antialiasingSample = 0;
                 camera.transform.hasChanged = false;
             }
+
+            if (directionalLight.transform.hasChanged)
+            {
+                antialiasingSample = 0;
+                Vector3 l = directionalLight.transform.forward;
+                rayTracer.SetVector("DirectionalLight", new Vector4(l.x, l.y, l.z, directionalLight.intensity));
+                directionalLight.transform.hasChanged = false;
+            }
+        }
+
+        private void OnValidate()
+        {
+            antialiasingSample = 0;
+            rayTracer.SetInt("Bounces", bounces);
         }
 
         private void OnImageRendered(RenderTexture destination)
