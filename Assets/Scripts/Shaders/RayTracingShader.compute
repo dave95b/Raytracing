@@ -20,6 +20,7 @@ static const float infinity = 3.402823466e+38;
 
 RWTexture2D<float4> Result;
 float4x4 CameraToWorld, CameraInverseProjection;
+float2 PixelOffset;
 
 Texture2D<float4> Skybox;
 SamplerState samplerSkybox;
@@ -117,7 +118,7 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     uint width, height;
     Result.GetDimensions(width, height);
 
-    float2 uv = float2((id.xy + float2(0.5f, 0.5f)) / float2(width, height) * 2.0f - 1.0f);
+    float2 uv = float2((id.xy + PixelOffset) / float2(width, height) * 2.0f - 1.0f);
     Ray ray = CreateCameraRay(uv);
     RayHit hit = Trace(ray);
 

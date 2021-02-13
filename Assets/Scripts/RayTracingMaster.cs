@@ -1,6 +1,7 @@
 ﻿using Assets.Scripts.Utils;
 using System.Collections;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 namespace Assets.Scripts
@@ -16,10 +17,16 @@ namespace Assets.Scripts
         [SerializeField]
         private Texture skybox;
 
+        [SerializeField]
+        private Shader antialiasingShader;
+
         private new Camera camera;
         private RenderTexture renderTexture;
 
         private int threadGroupsX, threadGroupsY;
+
+        private Material antialiasingMaterial;
+        private float antialiasingSample = 0.0f;
 
         private void Start()
         {
@@ -31,6 +38,8 @@ namespace Assets.Scripts
             rayTracer.SetTexture(0, "Skybox", skybox);
 
             onRenderImageDispatcher.OnImageRendered += OnImageRendered;
+
+            antialiasingMaterial = new Material(antialiasingShader);
         }
 
         private void OnDestroy()
@@ -38,18 +47,30 @@ namespace Assets.Scripts
             renderTexture?.Release();
         }
 
+        private void Update()
+        {
+            if (camera.transform.hasChanged)
+            {
+                antialiasingSample = 0;
+                camera.transform.hasChanged = false;
+            }
+        }
+
         private void OnImageRendered(RenderTexture destination)
         {
             SetShaderParameters();
             rayTracer.Dispatch(0, threadGroupsX, threadGroupsY, 1);
 
-            Graphics.Blit(renderTexture, destination);
+            antialiasingMaterial.SetFloat("_Sample", antialiasingSample++);
+
+            Graphics.Blit(renderTexture, destination, antialiasingMaterial);
         }
 
         private void SetShaderParameters()
         {
             rayTracer.SetMatrix("CameraToWorld", camera.cameraToWorldMatrix);
             rayTracer.SetMatrix("CameraInverseProjection", camera.projectionMatrix.inverse);
+            rayTracer.SetVector("PixelOffset", new Vector2(Random.value, Random.value));
         }
 
         private void CreateRenderTexture()
