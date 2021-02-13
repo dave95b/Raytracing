@@ -1,5 +1,7 @@
 ﻿using Assets.Scripts.Utils;
+using System.Runtime.InteropServices;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 
 namespace Assets.Scripts
 {
@@ -26,6 +28,19 @@ namespace Assets.Scripts
         [SerializeField]
         private bool castShadows = true;
 
+        [Header("Sphere placement")]
+        [SerializeField, Range(0.5f, 2f)]
+        private float minRadius;
+
+        [SerializeField, Range(2f, 6f)]
+        private float maxRadius;
+
+        [SerializeField]
+        private int sphereCount = 25;
+
+        [SerializeField]
+        private float placementRadius = 100.0f;
+
         private new Camera camera;
         private RenderTexture renderTexture;
 
@@ -34,7 +49,9 @@ namespace Assets.Scripts
         private Material antialiasingMaterial;
         private float antialiasingSample = 0.0f;
 
-        private void Start()
+        private ComputeBuffer sphereBuffer, lightBuffer;
+
+        private void Awake()
         {
             threadGroupsX = Mathf.CeilToInt(Screen.width / 32);
             threadGroupsY = Mathf.CeilToInt(Screen.height / 32);
@@ -77,6 +94,17 @@ namespace Assets.Scripts
             rayTracer.SetBool("CastShadows", castShadows);
         }
 
+        private void OnEnable()
+        {
+            antialiasingSample = 0;
+            CreateSpheres();
+        }
+
+        private void OnDisable()
+        {
+            sphereBuffer?.Release();
+        }
+
         private void OnImageRendered(RenderTexture destination)
         {
             SetShaderParameters();
@@ -101,6 +129,33 @@ namespace Assets.Scripts
             renderTexture.Create();
 
             rayTracer.SetTexture(0, "Result", renderTexture);
+        }
+
+        private void CreateSpheres()
+        {
+            Sphere[] spheres = new Sphere[sphereCount];
+
+            for (int i = 0; i < sphereCount; i++)
+            {
+                float radius = Random.Range(minRadius, maxRadius);
+                Vector3 position = Random.insideUnitCircle * placementRadius;
+                position.z = position.y;
+                position.y = radius;
+
+                Color color = Random.ColorHSV();
+                
+                bool metal = Random.value < 0.5f;
+                Vector3 fromColor = new Vector3(color.r, color.g, color.b);
+                Vector3 albedo = metal ? Vector3.zero : fromColor;
+                Vector3 specular = metal ? fromColor : Vector3.one * 0.1f;
+
+                spheres[i] = new Sphere(position, radius, albedo, specular);
+            }
+
+            sphereBuffer = new ComputeBuffer(sphereCount, Marshal.SizeOf<Sphere>());
+            sphereBuffer.SetData(spheres);
+            rayTracer.SetBuffer(0, "Spheres", sphereBuffer);
+            rayTracer.SetInt("SphereCount", sphereCount);
         }
     }
 }

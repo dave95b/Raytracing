@@ -12,22 +12,42 @@ struct RayHit
     float3 position;
     float distance;
     float3 normal;
+    float3 albedo;
+    float3 specular;
+};
+
+struct Sphere
+{
+    float3 position;
+    float radius;
+    float3 albedo;
+    float3 specular;
+};
+
+struct DirectionalLight2
+{
+    float3 direction;
+    float4 color;
+    float intensity;
 };
 
 static const float4 w1 = float4(0.0f, 0.0f, 0.0f, 1.0f);
 
 static const float3 float3Zero = float3(0.0f, 0.0f, 0.0f);
 static const float3 float3One = float3(1.0f, 1.0f, 1.0f);
-static const float3 specular = float3(0.6f, 0.6f, 0.6f);
 static const float3 albedo = float3(0.8f, 0.8f, 0.8f);
+static const float3 specular = float3(0.6f, 0.6f, 0.6f);
 
 static const float PI = 3.14159265f;
 static const float infinity = 3.402823466e+38;
 
 RWTexture2D<float4> Result;
+RWStructuredBuffer<Sphere> Spheres;
+uint SphereCount;
+
 float4x4 CameraToWorld, CameraInverseProjection;
 float2 PixelOffset;
-int Bounces;
+uint Bounces;
 
 Texture2D<float4> Skybox;
 SamplerState samplerSkybox;
@@ -40,7 +60,7 @@ Ray CreateRay(float3 origin, float3 direction)
     Ray ray;
     ray.origin = origin;
     ray.direction = direction;
-    ray.energy = float3(1, 1, 1);
+    ray.energy = float3One;
 
     return ray;
 }
@@ -62,6 +82,8 @@ RayHit CreateRayHit()
     hit.position = float3Zero;
     hit.distance = infinity;
     hit.normal = float3Zero;
+    hit.albedo = float3Zero;
+    hit.specular = float3Zero;
 
     return hit;
 }
@@ -75,14 +97,16 @@ void IntersectGroundPlane(Ray ray, inout RayHit bestHit)
         bestHit.distance = t;
         bestHit.position = ray.origin + t * ray.direction;
         bestHit.normal = float3(0.0f, 1.0f, 0.0f);
+        bestHit.albedo = albedo;
+        bestHit.specular = specular;
     }
 }
 
-void IntersectSphere(Ray ray, inout RayHit bestHit, float4 sphere)
+void IntersectSphere(Ray ray, inout RayHit bestHit, Sphere sphere)
 {
-    float3 d = ray.origin - sphere.xyz;
+    float3 d = ray.origin - sphere.position;
     float p1 = -dot(ray.direction, d);
-    float p2sqr = p1 * p1 - dot(d, d) + sphere.w * sphere.w;
+    float p2sqr = p1 * p1 - dot(d, d) + sphere.radius * sphere.radius;
 
     if (p2sqr < 0)
         return;
@@ -94,7 +118,9 @@ void IntersectSphere(Ray ray, inout RayHit bestHit, float4 sphere)
     {
         bestHit.distance = t;
         bestHit.position = ray.origin + t * ray.direction;
-        bestHit.normal = normalize(bestHit.position - sphere.xyz);
+        bestHit.normal = normalize(bestHit.position - sphere.position);
+        bestHit.albedo = sphere.albedo;
+        bestHit.specular = sphere.specular;
     }
 }
 
@@ -103,16 +129,8 @@ RayHit Trace(Ray ray)
     RayHit bestHit = CreateRayHit();
     IntersectGroundPlane(ray, bestHit);
 
-    float3 offset = float3(3.5f, 1.0f, 3.5f);
-
-    for (int i = -5; i < 5; i++)
-    {
-        for (int j = -5; j < 5; j++)
-        {
-            float3 position = offset * float3(i, 1, j);
-            IntersectSphere(ray, bestHit, float4(position, 1.0f));
-        }
-    }
+    for (uint i = 0; i < SphereCount; i++)
+        IntersectSphere(ray, bestHit, Spheres[i]);
 
     return bestHit;
 }
@@ -143,12 +161,12 @@ float3 Shade(inout Ray ray, RayHit hit)
     {
         ray.origin = hit.position + hit.normal * 0.001f;
         ray.direction = reflect(ray.direction, hit.normal);
-        ray.energy *= specular;
+        ray.energy *= hit.specular;
 
         if (TestShadow(hit))
             return float3Zero;
 
-        return saturate(dot(hit.normal, DirectionalLight.xyz) * -1) * DirectionalLight.w * albedo;
+        return saturate(dot(hit.normal, DirectionalLight.xyz) * -1) * DirectionalLight.w * hit.albedo;
     }
     else
         return SampleSkybox(ray);
@@ -165,7 +183,7 @@ void CSMain (uint3 id : SV_DispatchThreadID)
 
     float3 result = float3(0, 0, 0);
 
-    for (int i = 0; i <= Bounces; i++)
+    for (uint i = 0; i <= Bounces; i++)
     {
         RayHit hit = Trace(ray);
         result += ray.energy * Shade(ray, hit);
