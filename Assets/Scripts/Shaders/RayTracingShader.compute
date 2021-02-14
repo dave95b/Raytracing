@@ -36,7 +36,7 @@ static const float4 w1 = float4(0.0f, 0.0f, 0.0f, 1.0f);
 static const float3 float3Zero = float3(0.0f, 0.0f, 0.0f);
 static const float3 float3One = float3(1.0f, 1.0f, 1.0f);
 static const float3 albedo = float3(0.8f, 0.8f, 0.8f);
-static const float3 specular = float3(0.6f, 0.6f, 0.6f);
+static const float3 specular = float3(0.4f, 0.4f, 0.4f);
 
 static const float PI = 3.14159265f;
 static const float infinity = 3.402823466e+38;
@@ -168,7 +168,8 @@ float3 Shade(inout Ray ray, RayHit hit)
         if (TestShadow(hit))
             return float3Zero;
 
-        return hit.albedo * saturate(dot(hit.normal, Light[0].direction) * -1) * Light[0].intensity * Light[0].color.xyz;
+        DirectionalLight light = Light[0];
+        return hit.albedo * light.color.xyz * saturate(-dot(hit.normal, light.direction)) * light.intensity;
     }
     else
         return SampleSkybox(ray);

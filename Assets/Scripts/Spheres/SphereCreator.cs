@@ -1,6 +1,5 @@
 ﻿using System;
 using UnityEngine;
-using Random = UnityEngine.Random;
 
 namespace Raytracing
 {
@@ -20,14 +19,23 @@ namespace Raytracing
         [SerializeField]
         private float placementRadius = 30.0f;
 
+        [SerializeField]
+        private int seed;
+
         private Sphere[] spheres;
 
-        private void Start() => CreateSpheres();
+        private RNG rng;
+
+        private void Awake()
+        {
+            rng = new RNG(seed);
+        }
 
         private void OnEnable() => CreateSpheres();
 
         private void OnDestroy() => OnSpheresCreated = null;
 
+        [ContextMenu("Create")]
         private void CreateSpheres()
         {
             if (spheres?.Length != sphereCount)
@@ -35,15 +43,15 @@ namespace Raytracing
 
             for (int i = 0; i < sphereCount; i++)
             {
-                float radius = Random.Range(minRadius, maxRadius);
-                Vector3 position = Random.insideUnitCircle * placementRadius;
+                float radius = rng.Float(minRadius, maxRadius);
+                Vector3 position = rng.InsideUnitCircle * placementRadius;
                 position.z = position.y;
                 position.y = radius;
 
-                Color color = Random.ColorHSV(0, 1, 0.5f, 1, 0.5f, 1.0f);
+                Color color = rng.ColorHSV(0f, 1f, 0.5f, 1, 0.5f, 1.0f);
 
                 Vector3 fromColor = new Vector3(color.r, color.g, color.b);
-                float metallic = Random.Range(0.2f, 1f);
+                float metallic = rng.Float(0.2f, 1f);
                 Vector3 albedo = fromColor * metallic;
                 Vector3 specular = fromColor * (1f - metallic);
 

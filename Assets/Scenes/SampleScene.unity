@@ -395,6 +395,7 @@ MonoBehaviour:
   maxRadius: 3.87
   sphereCount: 50
   placementRadius: 30
+  seed: 1300
 --- !u!114 &966012147
 MonoBehaviour:
   m_ObjectHideFlags: 0
