@@ -1,15 +1,15 @@
 ﻿using System;
 using UnityEngine;
 
-namespace Assets.Scripts.Utils
+namespace Raytracing
 {
     public class OnRenderImageDispatcher : MonoBehaviour
     {
-        public event Action<RenderTexture> OnImageRendered;
+        public event Action<RenderTexture, RenderTexture> OnImageRendered;
 
         private void OnRenderImage(RenderTexture src, RenderTexture dest)
         {
-            OnImageRendered?.Invoke(dest);
+            OnImageRendered?.Invoke(src, dest);
         }
 
         private void OnDestroy()

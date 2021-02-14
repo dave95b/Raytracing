@@ -132,6 +132,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 705507995}
+  - component: {fileID: 705507996}
   - component: {fileID: 705507994}
   m_Layer: 0
   m_Name: Directional Light
@@ -216,6 +217,19 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 42.2, y: -57.1, z: 0}
+--- !u!114 &705507996
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 705507993}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8dc908aacb9a3384bac2612c7f844e5e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  directionalLight: {fileID: 705507994}
 --- !u!1 &963194225
 GameObject:
   m_ObjectHideFlags: 0
@@ -322,6 +336,9 @@ GameObject:
   m_Component:
   - component: {fileID: 966012145}
   - component: {fileID: 966012144}
+  - component: {fileID: 966012146}
+  - component: {fileID: 966012148}
+  - component: {fileID: 966012147}
   m_Layer: 0
   m_Name: RayTracing
   m_TagString: Untagged
@@ -342,16 +359,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   rayTracer: {fileID: 7200000, guid: 23c2aabe1bceb314fa14940bbe5fe9f5, type: 3}
-  onRenderImageDispatcher: {fileID: 963194229}
   skybox: {fileID: 2800000, guid: 1d7bdfc15e95626489b63bfbfc5d8386, type: 3}
-  antialiasingShader: {fileID: 4800000, guid: c48c1eeb55a4b3a4b86f3ea7a47ccd00, type: 3}
-  directionalLight: {fileID: 705507994}
+  onRenderImageDispatcher: {fileID: 963194229}
   bounces: 10
   castShadows: 1
-  minRadius: 1.236
-  maxRadius: 3.95
-  sphereCount: 50
-  placementRadius: 30
+  lightSource: {fileID: 705507996}
+  sphereCreator: {fileID: 966012146}
 --- !u!4 &966012145
 Transform:
   m_ObjectHideFlags: 0
@@ -366,3 +379,49 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &966012146
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 966012143}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5c7bdba857ca1a54da0d190be55f845c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  minRadius: 1.185
+  maxRadius: 3.87
+  sphereCount: 50
+  placementRadius: 30
+--- !u!114 &966012147
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 966012143}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0ffa4da8f3778724ca6939ff0478b2f8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  antialiasingShader: {fileID: 4800000, guid: c48c1eeb55a4b3a4b86f3ea7a47ccd00, type: 3}
+  onRenderImageDispatcher: {fileID: 963194229}
+  changeDispatcher: {fileID: 966012148}
+--- !u!114 &966012148
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 966012143}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b1515a6d9aa97d84783847b00f71701f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  rayTracing: {fileID: 966012144}
+  lightSource: {fileID: 705507996}
+  sphereCreator: {fileID: 966012146}
