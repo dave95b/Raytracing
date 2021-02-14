@@ -57,6 +57,9 @@ SamplerState samplerSkybox;
 RWStructuredBuffer<DirectionalLight> Light;
 bool CastShadows;
 
+float2 Pixel;
+float Seed;
+
 Ray CreateRay(float3 origin, float3 direction)
 {
     Ray ray;
@@ -88,6 +91,39 @@ RayHit CreateRayHit()
     hit.specular = float3Zero;
 
     return hit;
+}
+
+float rand()
+{
+    float result = frac(sin(Seed / 100.0f * dot(Pixel, float2(12.9898f, 78.233f))) * 43758.5453f);
+    Seed += 1.0f;
+
+    return result;
+}
+
+float3x3 GetTangentSpace(float3 normal)
+{
+    float3 helper = abs(normal.x) > 0.99f ? float3(0, 0, 1) : float3(1, 0, 0);
+
+    float3 tangent = normalize(cross(normal, helper));
+    float3 binormal = normalize(cross(normal, tangent));
+
+    return float3x3(tangent, binormal, normal);
+}
+
+float3 SampleHemisphere(float3 normal)
+{
+    float cosTheta = rand();
+    float sinTheta = sqrt(max(0.0f, 1.0f - cosTheta * cosTheta));
+    float phi = 2 * PI * rand();
+    float3 tangentSpaceDir = float3(cos(phi) * sinTheta, sin(phi) * sinTheta, cosTheta);
+
+    return mul(tangentSpaceDir, GetTangentSpace(normal));
+}
+
+float sdot(float3 x, float3 y, float f = 1.0f)
+{
+    return saturate(dot(x, y) * f);
 }
 
 void IntersectGroundPlane(Ray ray, inout RayHit bestHit)
@@ -162,14 +198,20 @@ float3 Shade(inout Ray ray, RayHit hit)
     if (hit.distance < infinity)
     {
         ray.origin = hit.position + hit.normal * 0.001f;
-        ray.direction = reflect(ray.direction, hit.normal);
-        ray.energy *= hit.specular;
+        ray.direction = SampleHemisphere(hit.normal);
+        ray.energy *= 2 * hit.albedo * sdot(hit.normal, ray.direction);
 
-        if (TestShadow(hit))
-            return float3Zero;
+        return 0.0f;
 
-        DirectionalLight light = Light[0];
-        return hit.albedo * light.color.xyz * saturate(-dot(hit.normal, light.direction)) * light.intensity;
+        //ray.origin = hit.position + hit.normal * 0.001f;
+        //ray.direction = reflect(ray.direction, hit.normal);
+        //ray.energy *= hit.specular;
+
+        //if (TestShadow(hit))
+        //    return float3Zero;
+
+        //DirectionalLight light = Light[0];
+        //return hit.albedo * light.color.xyz * saturate(-dot(hit.normal, light.direction)) * light.intensity;
     }
     else
         return SampleSkybox(ray);
@@ -178,6 +220,7 @@ float3 Shade(inout Ray ray, RayHit hit)
 [numthreads(32,32,1)]
 void CSMain (uint3 id : SV_DispatchThreadID)
 {
+    Pixel = id.xy;
     float2 uv = float2((id.xy + PixelOffset) / TextureSize * 2.0f - 1.0f);
     Ray ray = CreateCameraRay(uv);
 

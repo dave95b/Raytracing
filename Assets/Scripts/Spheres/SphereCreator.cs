@@ -51,7 +51,7 @@ namespace Raytracing
                 Color color = rng.ColorHSV(0f, 1f, 0.5f, 1, 0.5f, 1.0f);
 
                 Vector3 fromColor = new Vector3(color.r, color.g, color.b);
-                float metallic = rng.Float(0.2f, 1f);
+                float metallic = rng.Float(0.1f, 1f);
                 Vector3 albedo = fromColor * metallic;
                 Vector3 specular = fromColor * (1f - metallic);
 

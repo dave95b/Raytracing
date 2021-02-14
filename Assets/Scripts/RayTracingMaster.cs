@@ -19,6 +19,9 @@ namespace Raytracing
         [SerializeField]
         private OnRenderImageDispatcher onRenderImageDispatcher;
 
+        [SerializeField]
+        private Antialiasing antialiasing;
+
         [Header("Ray Tracing data")]
         [SerializeField, Range(0, 10)]
         private int bounces;
@@ -33,7 +36,7 @@ namespace Raytracing
         private SphereCreator sphereCreator;
 
         private new Camera camera;
-        private RenderTexture renderTexture;
+        private RenderTexture renderTexture, converged;
 
         private int threadGroupsX, threadGroupsY;
 
@@ -62,6 +65,7 @@ namespace Raytracing
         private void OnDestroy()
         {
             renderTexture?.Release();
+            converged?.Release();
             OnChanged = null;
         }
 
@@ -77,7 +81,8 @@ namespace Raytracing
         {
             SetShaderParameters();
             rayTracer.Dispatch(0, threadGroupsX, threadGroupsY, 1);
-            Graphics.Blit(renderTexture, source);
+            Graphics.Blit(renderTexture, converged, antialiasing.GetMaterial());
+            Graphics.Blit(converged, destination);
         }
 
         private void SetShaderParameters()
@@ -85,6 +90,7 @@ namespace Raytracing
             rayTracer.SetMatrix("CameraToWorld", camera.cameraToWorldMatrix);
             rayTracer.SetMatrix("CameraInverseProjection", camera.projectionMatrix.inverse);
             rayTracer.SetVector("PixelOffset", new Vector2(Random.value, Random.value));
+            rayTracer.SetFloat("Seed", Random.value);
         }
 
         private void CreateRenderTexture()
@@ -95,6 +101,10 @@ namespace Raytracing
 
             rayTracer.SetTexture(0, "Result", renderTexture);
             rayTracer.SetVector("TextureSize", new Vector2(renderTexture.width, renderTexture.height));
+
+            converged = new RenderTexture(Screen.width, Screen.height, 0, RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear);
+            renderTexture.enableRandomWrite = true;
+            renderTexture.Create();
         }
 
         private void OnLightUpdated(DirectionalLight light)

@@ -8,9 +8,6 @@ namespace Raytracing
         private Shader antialiasingShader;
 
         [SerializeField]
-        private OnRenderImageDispatcher onRenderImageDispatcher;
-
-        [SerializeField]
         private ChangeDispatcher changeDispatcher;
 
         private Material antialiasingMaterial;
@@ -23,7 +20,6 @@ namespace Raytracing
             antialiasingMaterial = new Material(antialiasingShader);
             camera = Camera.main;
 
-            onRenderImageDispatcher.OnImageRendered += OnImageRendered;
             changeDispatcher.OnChanged += ResetSample;
         }
 
@@ -36,10 +32,10 @@ namespace Raytracing
             camera.transform.hasChanged = false;
         }
 
-        private void OnImageRendered(RenderTexture source, RenderTexture destination)
+        public Material GetMaterial()
         {
             antialiasingMaterial.SetFloat("_Sample", antialiasingSample++);
-            Graphics.Blit(source, destination, antialiasingMaterial);
+            return antialiasingMaterial;
         }
 
         private void ResetSample() => antialiasingSample = 0;

@@ -361,6 +361,7 @@ MonoBehaviour:
   rayTracer: {fileID: 7200000, guid: 23c2aabe1bceb314fa14940bbe5fe9f5, type: 3}
   skybox: {fileID: 2800000, guid: 1d7bdfc15e95626489b63bfbfc5d8386, type: 3}
   onRenderImageDispatcher: {fileID: 963194229}
+  antialiasing: {fileID: 966012147}
   bounces: 10
   castShadows: 1
   lightSource: {fileID: 705507996}
