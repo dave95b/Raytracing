@@ -42,6 +42,8 @@ static const float PI = 3.14159265f;
 static const float infinity = 3.402823466e+38;
 
 RWTexture2D<float4> Result;
+float2 TextureSize;
+
 RWStructuredBuffer<Sphere> Spheres;
 uint SphereCount;
 
@@ -166,7 +168,7 @@ float3 Shade(inout Ray ray, RayHit hit)
         if (TestShadow(hit))
             return float3Zero;
 
-        return saturate(dot(hit.normal, Light[0].direction) * -1) * Light[0].intensity * hit.albedo * Light[0].color;
+        return hit.albedo * saturate(dot(hit.normal, Light[0].direction) * -1) * Light[0].intensity * Light[0].color.xyz;
     }
     else
         return SampleSkybox(ray);
@@ -175,10 +177,7 @@ float3 Shade(inout Ray ray, RayHit hit)
 [numthreads(32,32,1)]
 void CSMain (uint3 id : SV_DispatchThreadID)
 {
-    uint width, height;
-    Result.GetDimensions(width, height);
-
-    float2 uv = float2((id.xy + PixelOffset) / float2(width, height) * 2.0f - 1.0f);
+    float2 uv = float2((id.xy + PixelOffset) / TextureSize * 2.0f - 1.0f);
     Ray ray = CreateCameraRay(uv);
 
     float3 result = float3(0, 0, 0);

@@ -136,6 +136,7 @@ namespace Assets.Scripts
             renderTexture.Create();
 
             rayTracer.SetTexture(0, "Result", renderTexture);
+            rayTracer.SetVector("TextureSize", new Vector2(renderTexture.width, renderTexture.height));
         }
 
         private void CreateSpheres()
@@ -151,10 +152,10 @@ namespace Assets.Scripts
 
                 Color color = Random.ColorHSV(0, 1, 0.5f, 1, 0.5f, 1.0f);
                 
-                bool metal = Random.value < 0.5f;
                 Vector3 fromColor = new Vector3(color.r, color.g, color.b);
-                Vector3 albedo = metal ? Vector3.zero : fromColor;
-                Vector3 specular = metal ? fromColor : Vector3.one * 0.1f;
+                float metallic = Random.Range(0.2f, 1f);
+                Vector3 albedo = fromColor * metallic;
+                Vector3 specular = fromColor * (1f - metallic);
 
                 spheres[i] = new Sphere(position, radius, albedo, specular);
             }
