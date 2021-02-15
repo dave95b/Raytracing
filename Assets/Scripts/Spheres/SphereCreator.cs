@@ -46,10 +46,15 @@ namespace Raytracing
 
             for (int i = 0; i < sphereCount; i++)
             {
-                float radius = rng.Float(minRadius, maxRadius);
-                Vector3 position = rng.InsideUnitCircle * placementRadius;
-                position.z = position.y;
-                position.y = radius;
+                float radius;
+                Vector3 position;
+                do
+                {
+                    radius = rng.Float(minRadius, maxRadius);
+                    position = rng.InsideUnitCircle * placementRadius;
+                    position.z = position.y;
+                    position.y = radius;
+                } while (!CanBePlaced(position, radius, i));
 
                 Sphere sphere;
 
@@ -70,9 +75,23 @@ namespace Raytracing
             OnSpheresCreated?.Invoke(spheres);
         }
 
+        private bool CanBePlaced(in Vector3 position, float radius, int count)
+        {
+            for (int i = 0; i < count; i++)
+            {
+                var sphere = spheres[i];
+                float distance = (sphere.Position - position).magnitude;
+
+                if (distance < sphere.Radius + radius)
+                    return false;
+            }
+
+            return true;
+        }
+
         private Sphere CreateEmissiveSphere(in Vector3 position, float radius)
         {
-            Color color = rng.ColorHSV(0f, 1f, 0f, 1f, 0.5f, 2f);
+            Color color = rng.ColorHSV(0f, 1f, 0f, 1f, 1f, 2.25f);
             Vector3 emission = FromColor(color);
 
             return Sphere.Emissive(position, radius, emission);

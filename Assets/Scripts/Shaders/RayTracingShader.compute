@@ -151,9 +151,9 @@ void IntersectGroundPlane(Ray ray, inout RayHit bestHit)
         bestHit.distance = t;
         bestHit.position = ray.origin + t * ray.direction;
         bestHit.normal = float3(0.0f, 1.0f, 0.0f);
-        bestHit.albedo = 0;
-        bestHit.specular = 0.8f;
-        bestHit.smoothness = 1;
+        bestHit.albedo = 0.4f;
+        bestHit.specular = 0.4f;
+        bestHit.smoothness = 0.7f;
     }
 }
 
@@ -261,7 +261,7 @@ float3 Shade(inout Ray ray, RayHit hit)
         //return ShadeSimple(ray, hit);
     }
     else
-        return SampleSkybox(ray) * 1.2f;
+        return SampleSkybox(ray) * 0.8f;
 }
 
 [numthreads(32,32,1)]
