@@ -193,25 +193,40 @@ bool TestShadow(RayHit hit)
     return shadowHit.distance != infinity;
 }
 
+float3 ShadeSimple(inout Ray ray, RayHit hit)
+{
+    ray.origin = hit.position + hit.normal * 0.001f;
+    ray.direction = reflect(ray.direction, hit.normal);
+    ray.energy *= hit.specular;
+
+    if (TestShadow(hit))
+        return float3Zero;
+
+    DirectionalLight light = Light[0];
+    return hit.albedo * light.color.xyz * saturate(-dot(hit.normal, light.direction)) * light.intensity;
+}
+
+float3 ShadeDiffuse(inout Ray ray, RayHit hit)
+{
+    ray.origin = hit.position + hit.normal * 0.001f;
+    ray.direction = SampleHemisphere(hit.normal);
+
+    float3 reflected = reflect(ray.direction, hit.normal);
+    float alpha = 1.0f;
+    float3 diff = 2 * min(1.0f - hit.specular, hit.albedo);
+    float3 spec = hit.specular * (alpha + 2) * pow(sdot(ray.direction, reflected), alpha);
+
+    ray.energy *= (diff + spec) * sdot(hit.normal, ray.direction);
+
+    return 0.0f;
+}
+
 float3 Shade(inout Ray ray, RayHit hit)
 {
     if (hit.distance < infinity)
     {
-        ray.origin = hit.position + hit.normal * 0.001f;
-        ray.direction = SampleHemisphere(hit.normal);
-        ray.energy *= 2 * hit.albedo * sdot(hit.normal, ray.direction);
-
-        return 0.0f;
-
-        //ray.origin = hit.position + hit.normal * 0.001f;
-        //ray.direction = reflect(ray.direction, hit.normal);
-        //ray.energy *= hit.specular;
-
-        //if (TestShadow(hit))
-        //    return float3Zero;
-
-        //DirectionalLight light = Light[0];
-        //return hit.albedo * light.color.xyz * saturate(-dot(hit.normal, light.direction)) * light.intensity;
+        return ShadeDiffuse(ray, hit);
+        return ShadeSimple(ray, hit);
     }
     else
         return SampleSkybox(ray);
