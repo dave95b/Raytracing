@@ -101,6 +101,16 @@ float rand()
     return result;
 }
 
+float sdot(float3 x, float3 y, float f = 1.0f)
+{
+    return saturate(dot(x, y) * f);
+}
+
+float energy(float3 color)
+{
+    return dot(color, 1.0f / 3.0f);
+}
+
 float3x3 GetTangentSpace(float3 normal)
 {
     float3 helper = abs(normal.x) > 0.99f ? float3(0, 0, 1) : float3(1, 0, 0);
@@ -119,11 +129,6 @@ float3 SampleHemisphere(float3 normal)
     float3 tangentSpaceDir = float3(cos(phi) * sinTheta, sin(phi) * sinTheta, cosTheta);
 
     return mul(tangentSpaceDir, GetTangentSpace(normal));
-}
-
-float sdot(float3 x, float3 y, float f = 1.0f)
-{
-    return saturate(dot(x, y) * f);
 }
 
 void IntersectGroundPlane(Ray ray, inout RayHit bestHit)
@@ -208,15 +213,24 @@ float3 ShadeSimple(inout Ray ray, RayHit hit)
 
 float3 ShadeDiffuse(inout Ray ray, RayHit hit)
 {
+    hit.albedo = min(1.0f - hit.specular, hit.albedo);
+
+    float2 specDiff = float2(energy(hit.specular), energy(hit.albedo));
+    specDiff /= (specDiff.x + specDiff.y);
+
     ray.origin = hit.position + hit.normal * 0.001f;
-    ray.direction = SampleHemisphere(hit.normal);
+    float roulette = rand();
 
-    float3 reflected = reflect(ray.direction, hit.normal);
-    float alpha = 1.0f;
-    float3 diff = 2 * min(1.0f - hit.specular, hit.albedo);
-    float3 spec = hit.specular * (alpha + 2) * pow(sdot(ray.direction, reflected), alpha);
-
-    ray.energy *= (diff + spec) * sdot(hit.normal, ray.direction);
+    if (roulette < specDiff.x)
+    {
+        ray.direction = reflect(ray.direction, hit.normal);
+        ray.energy *= (1.0f / specDiff.x) * hit.specular * sdot(hit.normal, ray.direction);
+    }
+    else
+    {
+        ray.direction = SampleHemisphere(hit.normal);
+        ray.energy *= (1.0f / specDiff.y) * 2 * hit.albedo * sdot(hit.normal, ray.direction);
+    }
 
     return 0.0f;
 }
@@ -226,10 +240,10 @@ float3 Shade(inout Ray ray, RayHit hit)
     if (hit.distance < infinity)
     {
         return ShadeDiffuse(ray, hit);
-        return ShadeSimple(ray, hit);
+        //return ShadeSimple(ray, hit);
     }
     else
-        return SampleSkybox(ray);
+        return SampleSkybox(ray) * 1.5f;
 }
 
 [numthreads(32,32,1)]
