@@ -13,7 +13,7 @@ namespace Raytracing
         public RNG(int seed) => random = new Random(seed);
 
         public float Float() => Float(0f, 1f);
-        public float Float(float min) => Float(min, float.MaxValue);
+        public float Float(float max) => Float(0, max);
         public float Float(float min, float max) => (float)random.NextDouble() * (max - min) + min;
 
         public Vector2 OnUnitCircle => new Vector2(Float(-1f, 1f), Float(-1f, 1f)).normalized;

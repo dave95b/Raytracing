@@ -19,6 +19,9 @@ namespace Raytracing
         [SerializeField]
         private float placementRadius = 30.0f;
 
+        [SerializeField, Range(0f, 1f)]
+        private float metalChance, emissiveChance;
+
         [SerializeField]
         private int seed;
 
@@ -48,20 +51,33 @@ namespace Raytracing
                 position.z = position.y;
                 position.y = radius;
 
-                Color color = rng.ColorHSV(0f, 1f, 0.5f, 1, 0.5f, 1.0f);
+                Sphere sphere;
 
-                Vector3 fromColor = new Vector3(color.r, color.g, color.b);
-                bool metal = rng.Float() < 0.5f;
-                Vector3 albedo = metal ? Vector3.zero : fromColor;
-                Vector3 specular = metal ? fromColor : Vector3.one * 0.1f;
-                //float metallic = rng.Float(0.1f, 1f);
-                //Vector3 albedo = fromColor * metallic;
-                //Vector3 specular = fromColor * (1f - metallic);
+                Color color = rng.ColorHSV(0f, 1f, 0.5f, 1f, 0.5f, 1.5f);
+                Vector3 colorVec = FromColor(color);
+                float smoothness = rng.Float(2f);
 
-                spheres[i] = new Sphere(position, radius, albedo, specular);
+                if (rng.Float() < emissiveChance)
+                    sphere = CreateEmissiveSphere(position, radius);
+                else if (rng.Float() < metalChance)
+                    sphere = Sphere.Metal(position, radius, smoothness, colorVec);
+                else
+                    sphere = Sphere.Soft(position, radius, smoothness, colorVec);
+
+                spheres[i] = sphere;
             }
 
             OnSpheresCreated?.Invoke(spheres);
         }
+
+        private Sphere CreateEmissiveSphere(in Vector3 position, float radius)
+        {
+            Color color = rng.ColorHSV(0f, 1f, 0f, 1f, 0.5f, 2f);
+            Vector3 emission = FromColor(color);
+
+            return Sphere.Emissive(position, radius, emission);
+        }
+
+        private Vector3 FromColor(in Color color) => new Vector3(color.r, color.g, color.b);
     }
 }

@@ -396,7 +396,9 @@ MonoBehaviour:
   maxRadius: 3.87
   sphereCount: 50
   placementRadius: 30
-  seed: 1300
+  metalChance: 0.5
+  emissiveChance: 0.2
+  seed: 1094
 --- !u!114 &966012147
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -410,7 +412,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   antialiasingShader: {fileID: 4800000, guid: c48c1eeb55a4b3a4b86f3ea7a47ccd00, type: 3}
-  onRenderImageDispatcher: {fileID: 963194229}
   changeDispatcher: {fileID: 966012148}
 --- !u!114 &966012148
 MonoBehaviour:

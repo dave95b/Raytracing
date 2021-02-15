@@ -14,14 +14,18 @@ struct RayHit
     float3 normal;
     float3 albedo;
     float3 specular;
+    float smoothness;
+    float3 emission;
 };
 
 struct Sphere
 {
     float3 position;
     float radius;
+    float smoothness;
     float3 albedo;
     float3 specular;
+    float3 emission;
 };
 
 struct DirectionalLight
@@ -36,7 +40,7 @@ static const float4 w1 = float4(0.0f, 0.0f, 0.0f, 1.0f);
 static const float3 float3Zero = float3(0.0f, 0.0f, 0.0f);
 static const float3 float3One = float3(1.0f, 1.0f, 1.0f);
 static const float3 albedo = float3(0.8f, 0.8f, 0.8f);
-static const float3 specular = float3(0.4f, 0.4f, 0.4f);
+static const float3 specular = float3One * 0.4f;
 
 static const float PI = 3.14159265f;
 static const float infinity = 3.402823466e+38;
@@ -89,6 +93,8 @@ RayHit CreateRayHit()
     hit.normal = float3Zero;
     hit.albedo = float3Zero;
     hit.specular = float3Zero;
+    hit.smoothness = 0;
+    hit.emission = float3Zero;
 
     return hit;
 }
@@ -111,6 +117,11 @@ float energy(float3 color)
     return dot(color, 1.0f / 3.0f);
 }
 
+float SmoothnessToPhongAlpha(float s)
+{
+    return pow(1000.0f, s * s);
+}
+
 float3x3 GetTangentSpace(float3 normal)
 {
     float3 helper = abs(normal.x) > 0.99f ? float3(0, 0, 1) : float3(1, 0, 0);
@@ -121,10 +132,10 @@ float3x3 GetTangentSpace(float3 normal)
     return float3x3(tangent, binormal, normal);
 }
 
-float3 SampleHemisphere(float3 normal)
+float3 SampleHemisphere(float3 normal, float alpha)
 {
-    float cosTheta = rand();
-    float sinTheta = sqrt(max(0.0f, 1.0f - cosTheta * cosTheta));
+    float cosTheta = pow(rand(), 1.0f / (alpha + 1.0f));
+    float sinTheta = sqrt(1.0f - cosTheta * cosTheta);
     float phi = 2 * PI * rand();
     float3 tangentSpaceDir = float3(cos(phi) * sinTheta, sin(phi) * sinTheta, cosTheta);
 
@@ -140,8 +151,9 @@ void IntersectGroundPlane(Ray ray, inout RayHit bestHit)
         bestHit.distance = t;
         bestHit.position = ray.origin + t * ray.direction;
         bestHit.normal = float3(0.0f, 1.0f, 0.0f);
-        bestHit.albedo = albedo;
-        bestHit.specular = specular;
+        bestHit.albedo = 0;
+        bestHit.specular = 0.8f;
+        bestHit.smoothness = 1;
     }
 }
 
@@ -164,6 +176,8 @@ void IntersectSphere(Ray ray, inout RayHit bestHit, Sphere sphere)
         bestHit.normal = normalize(bestHit.position - sphere.position);
         bestHit.albedo = sphere.albedo;
         bestHit.specular = sphere.specular;
+        bestHit.smoothness = sphere.smoothness;
+        bestHit.emission = sphere.emission;
     }
 }
 
@@ -223,16 +237,20 @@ float3 ShadeDiffuse(inout Ray ray, RayHit hit)
 
     if (roulette < specDiff.x)
     {
-        ray.direction = reflect(ray.direction, hit.normal);
-        ray.energy *= (1.0f / specDiff.x) * hit.specular * sdot(hit.normal, ray.direction);
+        // Specular
+        float alpha = SmoothnessToPhongAlpha(hit.smoothness);
+        float f = (alpha + 1) / alpha;
+        ray.direction = SampleHemisphere(reflect(ray.direction, hit.normal), alpha);
+        ray.energy *= (1.0f / specDiff.x) * hit.specular * sdot(hit.normal, ray.direction, f);
     }
     else
     {
-        ray.direction = SampleHemisphere(hit.normal);
-        ray.energy *= (1.0f / specDiff.y) * 2 * hit.albedo * sdot(hit.normal, ray.direction);
+        // Diffuse
+        ray.direction = SampleHemisphere(hit.normal, 1.0f);
+        ray.energy *= (1.0f / specDiff.y) * hit.albedo;
     }
 
-    return 0.0f;
+    return hit.emission;
 }
 
 float3 Shade(inout Ray ray, RayHit hit)
@@ -243,7 +261,7 @@ float3 Shade(inout Ray ray, RayHit hit)
         //return ShadeSimple(ray, hit);
     }
     else
-        return SampleSkybox(ray) * 1.5f;
+        return SampleSkybox(ray) * 1.2f;
 }
 
 [numthreads(32,32,1)]
