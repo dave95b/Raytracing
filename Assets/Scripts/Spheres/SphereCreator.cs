@@ -22,6 +22,12 @@ namespace Raytracing
         [SerializeField, Range(0f, 1f)]
         private float metalChance, emissiveChance;
 
+        [SerializeField, Range(0.5f, 2f)]
+        private float minEmissiveIntensity = 1;
+
+        [SerializeField, Range(1f, 4f)]
+        private float maxEmissiveIntensity = 3;
+
         [SerializeField]
         private int seed;
 
@@ -91,7 +97,7 @@ namespace Raytracing
 
         private Sphere CreateEmissiveSphere(in Vector3 position, float radius)
         {
-            Color color = rng.ColorHSV(0f, 1f, 0f, 1f, 1f, 2.25f);
+            Color color = rng.ColorHSV(0f, 1f, 0f, 1f, minEmissiveIntensity, maxEmissiveIntensity);
             Vector3 emission = FromColor(color);
 
             return Sphere.Emissive(position, radius, emission);

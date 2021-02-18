@@ -57,6 +57,7 @@ uint Bounces;
 
 Texture2D<float4> Skybox;
 SamplerState samplerSkybox;
+float SkyboxStrength;
 
 RWStructuredBuffer<DirectionalLight> Light;
 bool CastShadows;
@@ -151,9 +152,9 @@ void IntersectGroundPlane(Ray ray, inout RayHit bestHit)
         bestHit.distance = t;
         bestHit.position = ray.origin + t * ray.direction;
         bestHit.normal = float3(0.0f, 1.0f, 0.0f);
-        bestHit.albedo = 0.4f;
-        bestHit.specular = 0.4f;
-        bestHit.smoothness = 0.7f;
+        bestHit.albedo = 0.7f;
+        bestHit.specular = 0.3f;
+        bestHit.smoothness = 0.8f;
     }
 }
 
@@ -261,7 +262,7 @@ float3 Shade(inout Ray ray, RayHit hit)
         //return ShadeSimple(ray, hit);
     }
     else
-        return SampleSkybox(ray) * 0.8f;
+        return SampleSkybox(ray) * SkyboxStrength;
 }
 
 [numthreads(32,32,1)]

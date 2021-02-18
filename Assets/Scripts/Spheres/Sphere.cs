@@ -12,7 +12,7 @@ namespace Raytracing
 
         public static Sphere Emissive(in Vector3 position, float radius, in Vector3 emission) => new Sphere(position, radius, 0f, Vector3.one, Vector3.one, emission);
 
-        public static Sphere Metal(in Vector3 position, float radius, float smoothness, in Vector3 specular) => new Sphere(position, radius, smoothness, Vector3.zero, specular, Vector3.zero);
+        public static Sphere Metal(in Vector3 position, float radius, float smoothness, in Vector3 specular) => new Sphere(position, radius, smoothness, specular * 0.1f, specular, Vector3.zero);
 
         public static Sphere Soft(in Vector3 position, float radius, float smoothness, in Vector3 albedo) => new Sphere(position, radius, smoothness, albedo, Vector3.one * 0.1f, Vector3.zero);
 

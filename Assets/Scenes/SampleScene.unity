@@ -308,7 +308,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 963194225}
   m_LocalRotation: {x: 0.35755306, y: 0, z: 0, w: 0.93389285}
-  m_LocalPosition: {x: 0, y: 41.68, z: -51.66}
+  m_LocalPosition: {x: 3.4, y: 39.6, z: -63.7}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -362,8 +362,9 @@ MonoBehaviour:
   skybox: {fileID: 2800000, guid: 1d7bdfc15e95626489b63bfbfc5d8386, type: 3}
   onRenderImageDispatcher: {fileID: 963194229}
   antialiasing: {fileID: 966012147}
-  bounces: 10
+  bounces: 5
   castShadows: 1
+  skyboxStrength: 0.349
   lightSource: {fileID: 705507996}
   sphereCreator: {fileID: 966012146}
 --- !u!4 &966012145
@@ -394,11 +395,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   minRadius: 1.185
   maxRadius: 3.87
-  sphereCount: 50
-  placementRadius: 30
+  sphereCount: 150
+  placementRadius: 50
   metalChance: 0.5
   emissiveChance: 0.2
-  seed: 1094
+  minEmissiveIntensity: 1
+  maxEmissiveIntensity: 3
+  seed: 1019
 --- !u!114 &966012147
 MonoBehaviour:
   m_ObjectHideFlags: 0

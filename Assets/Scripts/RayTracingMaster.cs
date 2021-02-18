@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Data.Odbc;
 using System.Runtime.InteropServices;
 using UnityEngine;
 using Random = UnityEngine.Random;
@@ -28,6 +29,9 @@ namespace Raytracing
 
         [SerializeField]
         private bool castShadows = true;
+
+        [SerializeField, Range(0.1f, 2f)]
+        private float skyboxStrength = 1f;
 
         [SerializeField]
         private LightDataSource lightSource;
@@ -90,6 +94,7 @@ namespace Raytracing
             rayTracer.SetMatrix("CameraToWorld", camera.cameraToWorldMatrix);
             rayTracer.SetMatrix("CameraInverseProjection", camera.projectionMatrix.inverse);
             rayTracer.SetVector("PixelOffset", new Vector2(Random.value, Random.value));
+            rayTracer.SetFloat("SkyboxStrength", skyboxStrength);
             rayTracer.SetFloat("Seed", Random.value);
         }
 
